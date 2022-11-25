@@ -1,54 +1,60 @@
-#include<opencv2/opencv.hpp>//OpenCV header to use VideoCapture class//
-#include<iostream>
-#include <sys/times.h> // for times
-#include <unistd.h> // for sysconf
+//Uncomment the following line if you are compiling this code in Visual Studio
+//#include "stdafx.h"
 
+#include <opencv2/opencv.hpp>
+#include <iostream>
+
+using namespace cv;
 using namespace std;
 
-int main() {
-    cv::Mat myImage;//Declaring a matrix to load the frames//
-    cv::Mat myImageColorBlur;//Declaring a matrix to load the frames//
-    cv::Mat myImageGeneralBlur;//Declaring a matrix to load the frames//
-    int n = 25;
-    int fps = 0;
-    cv::namedWindow("Video Player");//Declaring the video to show the video//
-    cv::VideoCapture cap(0);//Declaring an object to capture stream of frames from third camera//
-    long clocks_per_sec = sysconf(_SC_CLK_TCK); // количество квантов времени в секунду
-    long clocks;
-    struct tms start {}, end{};
-    if (!cap.isOpened()) { //This section prompt an error message if no video stream is found//
-        cout << "No video stream detected" << endl;
-        system("pause");
-        return -1;
-    }
-    while (true) { //Taking an everlasting loop to show the video//
-        times(&start);
-        cap >> myImage;
-        if (myImage.empty()) { //Breaking the loop if no video frame is detected//
-            break;
-        }
-        cv::medianBlur(myImage, myImageColorBlur, 5);
-        cv::medianBlur(myImage, myImageGeneralBlur, 3);
-        for (int i = 0; i < myImage.rows; ++i) {
-            for (int j = 0; j < myImage.cols; ++j) {
-                myImage.at<cv::Vec3b>(i, j) = cv::Vec3b(
-                    static_cast<int>(myImageColorBlur.at<cv::Vec3b>(i, j).val[0] / n) * n,
-                    static_cast<int>(myImageColorBlur.at<cv::Vec3b>(i, j).val[1] / n) * n,
-                    static_cast<int>(myImageColorBlur.at<cv::Vec3b>(i, j).val[2] / n) * n
-                );
-            }
-        }
-        cv::putText(myImage, "FPS: " + to_string(fps), { 50, 50 }, cv::FONT_HERSHEY_TRIPLEX, 1.5, (255, 255, 255));
-        imshow("Video Player", myImage);//Showing the video//
-        char c = (char)cv::waitKey(
-            25);//Allowing 25 milliseconds frame processing time and initiating break condition//
-        if (c == 27) { //If 'Esc' is entered break the loop//
-            break;
-        }
-        times(&end);
-        clocks = end.tms_utime - start.tms_utime;
-        fps = static_cast<int>(static_cast<double>(clocks_per_sec) / clocks);
-    }
-    cap.release();//Releasing the buffer memory//
-    return 0;
+int main(int argc, char* argv[])
+{
+	//Open the default video camera
+	VideoCapture cap(0);
+
+	// if not success, exit program
+	if (cap.isOpened() == false)
+	{
+		cout << "Cannot open the video camera" << endl;
+		cin.get(); //wait for any key press
+		return -1;
+	}
+
+	double dWidth = cap.get(CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
+	double dHeight = cap.get(CAP_PROP_FRAME_HEIGHT); //get the height of frames of the video
+
+	cout << "Resolution of the video : " << dWidth << " x " << dHeight << endl;
+
+	string window_name = "My Camera Feed";
+	namedWindow(window_name); //create a window called "My Camera Feed"
+
+	while (true)
+	{
+		Mat frame;
+		bool bSuccess = cap.read(frame); // read a new frame from video 
+
+		//Breaking the while loop if the frames cannot be captured
+		if (bSuccess == false)
+		{
+			cout << "Video camera is disconnected" << endl;
+			cin.get(); //Wait for any key press
+			break;
+		}
+
+		//show the frame in the created window
+		imshow(window_name, frame);
+
+		//wait for for 10 ms until any key is pressed.  
+		//If the 'Esc' key is pressed, break the while loop.
+		//If the any other key is pressed, continue the loop 
+		//If any key is not pressed withing 10 ms, continue the loop 
+		if (waitKey(10) == 27)
+		{
+			cout << "Esc key is pressed by user. Stoppig the video" << endl;
+			break;
+		}
+	}
+
+	return 0;
+
 }
