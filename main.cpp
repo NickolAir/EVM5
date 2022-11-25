@@ -41,6 +41,11 @@ int main(int argc, char* argv[])
 			break;
 		}
 
+		//cvtColor(frame, frame, COLOR_BGR2HSV, 1); //CHANGE COLOR MODEL
+		//cvtColor(frame, frame, COLORMAP_PINK, 1); //GREY FILTER
+		//frame.convertTo(frame, -1, 0.5, 0); //decrease the contrast by 0.5
+		blur(frame, frame, Size(25, 25));
+
 		//show the frame in the created window
 		imshow(window_name, frame);
 
@@ -48,13 +53,11 @@ int main(int argc, char* argv[])
 		//If the 'Esc' key is pressed, break the while loop.
 		//If the any other key is pressed, continue the loop 
 		//If any key is not pressed withing 10 ms, continue the loop 
-		if (waitKey(10) == 27)
+		if (waitKey(33) == 27)
 		{
 			cout << "Esc key is pressed by user. Stoppig the video" << endl;
 			break;
 		}
 	}
-
 	return 0;
-
 }
